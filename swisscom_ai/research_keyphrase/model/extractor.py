@@ -25,6 +25,12 @@ NP:
 GRAMMAR_FR = """  NP:
         {<NN.*|JJ>*<NN.*>+<JJ>*}  # Adjective(s)(optional) + Noun(s) + Adjective(s)(optional)"""
 
+GRAMMAR_KR = """
+NP: {<N.*>*<Suffix>?}
+VP: {<V.*>*}
+AP: {<A.*>*}
+"""
+
 
 def get_grammar(lang):
     if lang == 'en':
@@ -33,6 +39,8 @@ def get_grammar(lang):
         grammar = GRAMMAR_DE
     elif lang == 'fr':
         grammar = GRAMMAR_FR
+    elif lang == 'kr':
+        grammar = GRAMMAR_KR
     else:
         raise ValueError('Language not handled')
     return grammar

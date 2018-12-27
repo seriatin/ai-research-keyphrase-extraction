@@ -184,6 +184,50 @@ class PosTaggingSpacy(PosTagging):
             return [[(token.text, token.tag_) for token in sent] for sent in doc.sents]
         return '[ENDSENT]'.join(' '.join('|'.join([token.text, token.tag_]) for token in sent) for sent in doc.sents)
 
+class PosTaggingKonlpy(PosTagging):
+    def __init__(self, tagger=None, tag=None, separator='|', lang='kr'):
+        if not tagger:
+            print('Loading... Default Korean Tagger : MeCab()')
+            from konlpy.tag import Mecab
+            self.tagger = Mecab()
+        else:
+            self.tagger = tagger
+
+        self.tag = tag
+        self.lang = lang
+        self.separator = separator
+
+    def convert_dot(self, doc):
+        change_token = True
+        continuos_word = ''
+        replace_document = ''
+        pos_tag_document = self.tagger.pos(doc)
+        for char in doc:
+            if len(pos_tag_document) < 1: break
+            if change_token: pos_tag_word = pos_tag_document.pop(0)
+            change_token = False
+            continuos_word += char
+            if continuos_word.strip() == pos_tag_word[0]:
+                replace_document += continuos_word + ( '. ' if self.tag in pos_tag_word[1] and continuos_word[:-1] != '.' else '' )
+                continuos_word = ''
+                change_token = True
+        return replace_document
+    
+    def sent_tokenize(self, doc):
+        from nltk import sent_tokenize as st
+        _doc = self.convert_dot(doc)
+        _sent = st(_doc)
+        return list(filter(lambda x: x != '.', _sent))
+
+    def pos_tag_raw_text(self, text, as_tuple_list=True):
+        tagged_text = [ self.tagger.pos(sent) for sent in self.sent_tokenize(text) ]
+        
+        if as_tuple_list:
+            return tagged_text
+        return '[ENDSENT]'.join(
+            [' '.join([tuple2str(tagged_token, self.seperator) for tagged_token in sent]) for sent in tagged_text])
+ 
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Write POS tagged files, the resulting file will be written'

@@ -4,7 +4,7 @@ from configparser import ConfigParser
 from swisscom_ai.research_keyphrase.embeddings.emb_distrib_local import EmbeddingDistributorLocal
 from swisscom_ai.research_keyphrase.model.input_representation import InputTextObj
 from swisscom_ai.research_keyphrase.model.method import MMRPhrase
-from swisscom_ai.research_keyphrase.preprocessing.postagging import PosTaggingStanford
+from swisscom_ai.research_keyphrase.preprocessing.postagging import PosTaggingStanford, PosTaggingKonlpy
 from swisscom_ai.research_keyphrase.util.fileIO import read_file
 
 
@@ -30,10 +30,10 @@ def extract_keyphrases(embedding_distrib, ptagger, raw_text, N, lang, beta=0.55,
 
 
 def load_local_embedding_distributor(lang):
-    assert (lang in ['en', 'de']), "Only english 'en' and german 'de' are handled"
+    assert (lang in ['en', 'de', 'kr']), "Only english 'en' and german 'de' are handled"
     config_parser = ConfigParser()
     config_parser.read('config.ini')
-    if lang == 'en':
+    if lang == 'en' or lang == 'kr':
         sent2vec_model = config_parser.get('SENT2VEC', 'model_path')
     elif lang == 'de':
         sent2vec_model = config_parser.get('SENT2VEC', 'model_path_de')
@@ -42,12 +42,17 @@ def load_local_embedding_distributor(lang):
 
 
 def load_local_pos_tagger(lang):
-    assert (lang in ['en', 'de', 'fr']), "Only english 'en', german 'de' and french 'fr' are handled"
+    assert (lang in ['en', 'de', 'fr', 'kr']), "Only english 'en', german 'de' and french 'fr' are handled"
     config_parser = ConfigParser()
     config_parser.read('config.ini')
-    jar_path = config_parser.get('STANFORDTAGGER', 'jar_path')
-    model_directory_path = config_parser.get('STANFORDTAGGER', 'model_directory_path')
-    return PosTaggingStanford(jar_path, model_directory_path, lang=lang)
+    if lang in ['en','de','fr']:
+        jar_path = config_parser.get('STANFORDTAGGER', 'jar_path')
+        model_directory_path = config_parser.get('STANFORDTAGGER', 'model_directory_path')
+        return PosTaggingStanford(jar_path, model_directory_path, lang=lang)
+    elif lang == 'kr':
+        from konlpy.tag import Mecab
+        mecab = Mecab()
+        return PosTaggingKonlpy(tagger=mecab, tag='EF', lang=lang)
 
 
 if __name__ == '__main__':
@@ -65,6 +70,6 @@ if __name__ == '__main__':
     else:
         raw_text = args.raw_text
 
-    embedding_distributor = load_local_embedding_distributor('en')
-    pos_tagger = load_local_pos_tagger('en')
-    print(extract_keyphrases(embedding_distributor, pos_tagger, raw_text, args.N, 'en'))
+    embedding_distributor = load_local_embedding_distributor('kr')
+    pos_tagger = load_local_pos_tagger('kr')
+    print(extract_keyphrases(embedding_distributor, pos_tagger, raw_text, args.N, 'kr'))
