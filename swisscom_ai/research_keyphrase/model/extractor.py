@@ -26,9 +26,12 @@ GRAMMAR_FR = """  NP:
         {<NN.*|JJ>*<NN.*>+<JJ>*}  # Adjective(s)(optional) + Noun(s) + Adjective(s)(optional)"""
 
 GRAMMAR_KR = """
-NP: {<N.*>*<Suffix>?}
-VP: {<V.*>*}
-AP: {<A.*>*}
+NBAR:
+        {<N.*><JKS|MAG>*<VV.*>}
+
+NP: 
+    {<NBAR>}
+    {<N.*>*<Suffix>?}
 """
 
 
