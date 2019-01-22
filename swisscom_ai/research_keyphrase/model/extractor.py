@@ -30,8 +30,8 @@ NBAR:
         {<N.*><JKS|MAG>*<VV.*>}
 
 NP: 
-    {<NBAR>}
     {<N.*>*<Suffix>?}
+    {<NBAR>}
 """
 
 
